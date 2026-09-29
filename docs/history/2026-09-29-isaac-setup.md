@@ -91,10 +91,12 @@ python sim_main.py \
   --robot_type g129
 ```
 
-На этапе загрузки появились MDL/Shader warnings для части материалов warehouse asset, но они не оказались блокирующими. Сцена загрузилась и simulation loop работает: в viewport отображается warehouse environment, в терминале печатается `While loop execution frequency statistics` с устойчивой частотой около 4 Hz.
+На этапе загрузки появились MDL/Shader warnings для части материалов warehouse asset, но они не оказались блокирующими. Сцена загрузилась и simulation loop работает: в терминале печатается `While loop execution frequency statistics` с устойчивой частотой около 4 Hz.
 
-Статус: **официальный G1 + Inspire task запущен; сцена и simulation loop работают**. Текущая камера смотрит на участок warehouse и не показывает робота в кадре, поэтому отдельно требуется найти/сфокусировать G1 в Stage/viewport и подтвердить его состояние.
+Робот найден через Stage и визуально подтверждён в viewport: загружен Unitree G1 с Inspire hands рядом с рабочим столом в warehouse-сцене. Стол и объект task также присутствуют.
+
+Статус: **локальная установка Isaac Sim + Isaac Lab + официальный Unitree G1/Inspire runtime полностью подтверждена**.
 
 ## Следующий шаг
 
-Найти prim робота в Stage, сфокусировать viewport на G1 и проверить, что загружены Inspire hands, стол и red block. После визуального подтверждения перейти к собственной сцене сортировщика: conveyor, accept/reject bins, камера и тестовые объекты.
+Перейти от проверки окружения к собственной задаче сортировки. За основу взять `Isaac-PickPlace-RedBlock-G129-Inspire-Joint`, затем выделить отдельный sorter task и поэтапно добавить conveyor, accept/reject bins, камеры и генератор тестовых объектов. Сначала сохранить детерминированное управление/IK и только после стабильного baseline добавлять обучение и массовые прогоны на RTX 5090.
