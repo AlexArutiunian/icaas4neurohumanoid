@@ -30,18 +30,28 @@
 4. Показание `CUDA 13.0` в `nvidia-smi` не использовать как версию Python/CUDA-окружения: зависимости Isaac/PyTorch остаются изолированными.
 5. Тяжёлые прогоны и обучение планировать на RTX 5090; локальную RTX 3080 Ti использовать для GUI, сцены и отладки.
 
-## Текущий этап
+## Ход установки
 
-Запущена установка окружения Unitree/Isaac Lab:
+Запущено:
 
 ```bash
 chmod +x auto_setup_env.sh
 bash auto_setup_env.sh 5.1 unitree_sim_env
 ```
 
-Статус: **in progress**. Успешная установка пока не зафиксирована.
+Phase 1/2 дошли до успешной установки CycloneDDS в `~/cyclonedds/install`. На Phase 3 установка остановилась до создания Python-окружения:
 
-## Следующая проверка
+```text
+auto_setup_env.sh: line 133: conda: command not found
+```
+
+Причина: `auto_setup_env.sh` ожидает уже установленную и доступную в `PATH` Conda (`CONDA_BASE=$(conda info --base)`), а на ноутбуке Conda изначально отсутствовала.
+
+Статус: **blocked on Conda initialization**. Isaac Sim и Isaac Lab локально ещё не установлены.
+
+## Следующий шаг
+
+Установить или активировать Miniconda, проверить `conda --version`, затем повторно запустить тот же официальный setup script. Уже собранный CycloneDDS оставляем на месте.
 
 После завершения установки проверить:
 
