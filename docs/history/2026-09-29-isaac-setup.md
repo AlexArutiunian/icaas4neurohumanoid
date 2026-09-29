@@ -14,9 +14,9 @@
 | ОС | Ubuntu 22.04.5 LTS |
 | glibc | `2.35` |
 | системный Python | `3.10.12` |
-| Conda | изначально отсутствовала |
+| Conda | установлена позже через Miniconda |
 
-Системный Python решено не изменять: Isaac/Unitree устанавливаются в отдельное окружение.
+Системный Python не изменяем: Isaac/Unitree устанавливаются в отдельное окружение.
 
 ## Серверный baseline
 
@@ -24,11 +24,11 @@
 
 ## Принятые решения
 
-1. Для ноутбука использовать официальный `unitreerobotics/unitree_sim_isaaclab`, а не собирать G1 вручную поверх чистого Isaac Sim.
+1. Использовать официальный `unitreerobotics/unitree_sim_isaaclab`, а не собирать G1 вручную поверх чистого Isaac Sim.
 2. Использовать Isaac Sim `5.1`, чтобы локальная среда соответствовала серверному baseline.
-3. Установку вести через официальный `auto_setup_env.sh` Unitree в отдельное окружение `unitree_sim_env`.
-4. Показание `CUDA 13.0` в `nvidia-smi` не использовать как версию Python/CUDA-окружения: зависимости Isaac/PyTorch остаются изолированными.
-5. Тяжёлые прогоны и обучение планировать на RTX 5090; локальную RTX 3080 Ti использовать для GUI, сцены и отладки.
+3. Держать всё в отдельном `unitree_sim_env`.
+4. Для Isaac Sim 5.1 зафиксировать совместимый Isaac Lab commit `80094be3245aa5c8376a7464d29cb4412ea518f5`, указанный в официальной инструкции Unitree.
+5. RTX 3080 Ti использовать для GUI/сцены/отладки; тяжёлые прогоны и обучение — на RTX 5090.
 
 ## Ход установки
 
@@ -49,42 +49,38 @@ CycloneDDS собран и установлен в `~/cyclonedds/install`.
 
 ### 3. Conda
 
-Первый запуск Phase 3 остановился из-за отсутствия команды `conda`. После установки/инициализации Miniconda setup дошёл до создания окружения `unitree_sim_env`, но Conda потребовала принять Terms of Service для стандартных Anaconda channels:
+Сначала отсутствовала команда `conda`, затем Miniconda была установлена и инициализирована. Отдельно были приняты Terms of Service стандартных Anaconda channels.
+
+### 4. Isaac Sim / Isaac Lab
+
+Окружение `unitree_sim_env` создано на Python `3.11.16`. Setup дошёл до установки Isaac Lab, но завершился ошибкой зависимостей:
 
 ```text
-CondaToSNonInteractiveError: Terms of Service have not been accepted
+isaaclab==32.0.0 depends on Python>=3.12
+current Python: 3.11.16
 ```
 
-Требуется принять ToS для:
+Перед ошибкой `isaaclab.sh` успел заменить целевые `torch 2.7.0 + cu126` на `torch 2.12.0 + cu130` и обновить NumPy.
+
+Причина найдена в текущем `auto_setup_env.sh`: для Isaac Sim `5.1` он клонирует актуальный `IsaacLab` `main` и не делает checkout совместимого commit. В самом script нужный commit оставлен только закомментированным. Официальная инструкция Unitree для Isaac Sim 5.1 указывает commit:
 
 ```text
-https://repo.anaconda.com/pkgs/main
-https://repo.anaconda.com/pkgs/r
+80094be3245aa5c8376a7464d29cb4412ea518f5
 ```
 
-Статус: **blocked on Conda channel ToS acceptance**. Isaac Sim и Isaac Lab локально ещё не установлены.
+Статус: **installation interrupted by upstream version mismatch**.
 
-## Следующий шаг
+## Исправление
 
-Принять ToS, затем повторно запустить тот же setup script:
+Не использовать текущий `IsaacLab main` с Python 3.11 / Isaac Sim 5.1. Переключить `~/IsaacLab` на зафиксированный Unitree commit и восстановить чистое окружение с целевыми версиями Python/PyTorch перед повторной установкой.
 
-```bash
-conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main
-conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
-
-cd ~/unitree_sim_isaaclab
-bash auto_setup_env.sh 5.1 unitree_sim_env
-```
-
-Повторный запуск оставляем штатным: уже скачанные assets и собранный CycloneDDS повторно использоваться там, где это поддерживает скрипт.
-
-После завершения установки проверить:
+После исправления проверить:
 
 ```bash
 conda activate unitree_sim_env
 python --version
-python -c "import torch; print(torch.__version__, torch.cuda.is_available(), torch.cuda.get_device_name(0))"
+python -c "import torch; print(torch.__version__, torch.version.cuda, torch.cuda.is_available(), torch.cuda.get_device_name(0))"
 isaacsim
 ```
 
-После успешного старта Isaac Sim — проверить официальный G1 + Inspire task и затем переходить к сцене сортировщика.
+Затем проверить `scripts/tutorials/00_sim/create_empty.py`, официальный G1 + Inspire task и только после этого переходить к сцене сортировщика.
