@@ -65,27 +65,22 @@ CUDA available: True
 GPU: NVIDIA GeForce RTX 3080 Ti Laptop GPU
 ```
 
-Статус: **Python/CUDA stack operational; runtime launch checks pending**.
+### Runtime
+
+Isaac Sim GUI успешно запущен локально на RTX 3080 Ti. Asset Browser работает; read-only cloud assets отображаются с замком, но доступны для использования в сцене.
+
+Проверено добавление humanoid asset в Stage: робот появился в viewport, его prim-иерархия отображается в дереве сцены. Во время активного RTX-рендера GPU загружена полностью, что ожидаемо для Isaac Sim; по скриншоту использовалось около 2.8 GB VRAM из 16 GB.
+
+Статус: **Isaac Sim GUI operational; asset loading confirmed**.
 
 ## Следующий шаг
 
-Отдельно убедиться, что применён `libstdc++` patch:
-
-```bash
-conda install -y -c conda-forge libstdcxx-ng
-```
-
-После этого проверить:
-
-```bash
-isaacsim
-```
-
-и затем:
+1. Проверить базовый Isaac Lab runtime:
 
 ```bash
 cd ~/IsaacLab
 ./isaaclab.sh -p scripts/tutorials/00_sim/create_empty.py
 ```
 
-После успешного запуска — проверить официальный G1 + Inspire task и переходить к сцене сортировщика.
+2. Запустить официальный Unitree G1 + Inspire task.
+3. После подтверждения G1 runtime перейти к сцене сортировщика: conveyor, accept/reject bins, камера и набор тестовых объектов.
