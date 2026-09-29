@@ -32,13 +32,6 @@
 
 ## Ход установки
 
-Запущено:
-
-```bash
-chmod +x auto_setup_env.sh
-bash auto_setup_env.sh 5.1 unitree_sim_env
-```
-
 ### 1. Assets
 
 Официальные Unitree assets скачаны и распакованы успешно (`assets.zip`, около 1.2 GB).
@@ -49,38 +42,52 @@ CycloneDDS собран и установлен в `~/cyclonedds/install`.
 
 ### 3. Conda
 
-Сначала отсутствовала команда `conda`, затем Miniconda была установлена и инициализирована. Отдельно были приняты Terms of Service стандартных Anaconda channels.
+Miniconda установлена и инициализирована. Отдельно приняты Terms of Service стандартных Anaconda channels.
 
-### 4. Isaac Sim / Isaac Lab
+### 4. Первая попытка Isaac Lab
 
-Окружение `unitree_sim_env` создано на Python `3.11.16`. Setup дошёл до установки Isaac Lab, но завершился ошибкой зависимостей:
+Первый запуск официального setup script для Isaac Sim 5.1 дошёл до установки Isaac Lab, но использовал актуальный `IsaacLab main`. Он уже требовал Python `>=3.12`, тогда как окружение Unitree создано на Python `3.11.16`. Перед остановкой зависимости также были обновлены до `torch 2.12.0 + cu130`.
 
-```text
-isaaclab==32.0.0 depends on Python>=3.12
-current Python: 3.11.16
-```
+Причина: в `auto_setup_env.sh` совместимый Isaac Lab commit для 5.1 оставлен закомментированным, поэтому checkout автоматически не выполняется.
 
-Перед ошибкой `isaaclab.sh` успел заменить целевые `torch 2.7.0 + cu126` на `torch 2.12.0 + cu130` и обновить NumPy.
+### 5. Исправление версии Isaac Lab
 
-Причина найдена в текущем `auto_setup_env.sh`: для Isaac Sim `5.1` он клонирует актуальный `IsaacLab` `main` и не делает checkout совместимого commit. В самом script нужный commit оставлен только закомментированным. Официальная инструкция Unitree для Isaac Sim 5.1 указывает commit:
+`~/IsaacLab` переключён на commit, указанный Unitree для Isaac Sim 5.1:
 
 ```text
 80094be3245aa5c8376a7464d29cb4412ea518f5
 ```
 
-Статус: **installation interrupted by upstream version mismatch**.
+Окружение `unitree_sim_env` пересоздано на Python `3.11`. Установка pinned Isaac Lab завершилась без фатальной ошибки; EULA NVIDIA принята. В финальном шаге установлены `torch 2.7.0+cu128`, `torchvision 0.22.0+cu128`, `triton 3.3.0`.
 
-## Исправление
+Предупреждение о недостающем `isaacsim/.vscode/settings.json` относится только к VSCode `python.analysis.extraPaths` и не блокирует работу Isaac Lab.
 
-Не использовать текущий `IsaacLab main` с Python 3.11 / Isaac Sim 5.1. Переключить `~/IsaacLab` на зафиксированный Unitree commit и восстановить чистое окружение с целевыми версиями Python/PyTorch перед повторной установкой.
+Статус: **Isaac Lab installed; Unitree dependencies and runtime verification pending**.
 
-После исправления проверить:
+## Следующий шаг
+
+Доставить оставшиеся зависимости Unitree и патч `libstdc++`:
 
 ```bash
-conda activate unitree_sim_env
-python --version
-python -c "import torch; print(torch.__version__, torch.version.cuda, torch.cuda.is_available(), torch.cuda.get_device_name(0))"
-isaacsim
+export CYCLONEDDS_HOME="$HOME/cyclonedds/install"
+
+cd ~/unitree_sdk2_python
+pip install -e .
+
+cd ~/unitree_sim_isaaclab
+pip install -r requirements.txt
+
+cd teleimager
+pip install -e .
+cd ..
+
+conda install -y -c conda-forge libstdcxx-ng
 ```
 
-Затем проверить `scripts/tutorials/00_sim/create_empty.py`, официальный G1 + Inspire task и только после этого переходить к сцене сортировщика.
+После этого проверить фактические версии и GPU:
+
+```bash
+python -c "import torch; print(torch.__version__, torch.version.cuda, torch.cuda.is_available(), torch.cuda.get_device_name(0))"
+```
+
+Затем проверить запуск `isaacsim`, `scripts/tutorials/00_sim/create_empty.py`, официальный G1 + Inspire task и только после этого переходить к сцене сортировщика.
