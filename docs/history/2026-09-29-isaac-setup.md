@@ -69,25 +69,20 @@ GPU: NVIDIA GeForce RTX 3080 Ti Laptop GPU
 
 Isaac Sim GUI успешно запущен локально на RTX 3080 Ti. Asset Browser работает; cloud assets read-only, но доступны для использования в сцене. Проверено добавление humanoid asset в Stage.
 
-Базовый Isaac Lab runtime также успешно запущен через:
+Базовый Isaac Lab runtime успешно запущен через:
 
 ```bash
 cd ~/IsaacLab
 ./isaaclab.sh -p scripts/tutorials/00_sim/create_empty.py
 ```
 
-Открылось окно Isaac Sim 5.1.0 с пустой сценой и `PhysicsScene`; в терминале получено `Simulation App Startup Complete` и `[INFO]: Setup complete...`. Предупреждения PhysX/viewport не были фатальными.
+Открылось окно Isaac Sim 5.1.0 с пустой сценой и `PhysicsScene`; получены `Simulation App Startup Complete` и `[INFO]: Setup complete...`.
 
-Статус: **Isaac Sim + Isaac Lab runtime operational**.
+### Первый запуск G1 + Inspire
 
-## Следующий шаг
-
-Запустить официальный Unitree G1 + Inspire task:
+Запущен официальный task:
 
 ```bash
-conda activate unitree_sim_env
-export CYCLONEDDS_HOME="$HOME/cyclonedds/install"
-cd ~/unitree_sim_isaaclab
 python sim_main.py \
   --device cpu \
   --enable_cameras \
@@ -96,4 +91,12 @@ python sim_main.py \
   --robot_type g129
 ```
 
-После подтверждения G1 runtime перейти к сцене сортировщика: conveyor, accept/reject bins, камера и тестовые объекты.
+Isaac Sim стартовал, но при загрузке сцены появились ошибки MDL/Shader из `assets/objects/small_warehouse_digital_twin`, включая `Unable to find SdrShaderNode` и invalid `MdlModuleId` для материалов warehouse. Viewport остался пустым; успешное `create environment success` пока не подтверждено.
+
+Ошибки относятся к материалам warehouse asset, который подключается базовой сценой `TableRedBlockSceneCfg`, а не непосредственно к модели G1.
+
+Статус: **G1 task launch reached scene loading; warehouse MDL/material issue under diagnosis**.
+
+## Следующий шаг
+
+Проверить наличие проблемных `.mdl` файлов и их регистр/путь. Если файлы присутствуют, диагностировать MDL search path; если отсутствуют — повторно проверить Unitree asset pack. При необходимости временно отключить `room_walls` в test scene, чтобы отдельно подтвердить загрузку G1 + Inspire без warehouse окружения.
