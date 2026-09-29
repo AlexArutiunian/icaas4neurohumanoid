@@ -14,7 +14,7 @@
 | ОС | Ubuntu 22.04.5 LTS |
 | glibc | `2.35` |
 | системный Python | `3.10.12` |
-| Conda | отсутствовала |
+| Conda | изначально отсутствовала |
 
 Системный Python решено не изменять: Isaac/Unitree устанавливаются в отдельное окружение.
 
@@ -39,19 +39,44 @@ chmod +x auto_setup_env.sh
 bash auto_setup_env.sh 5.1 unitree_sim_env
 ```
 
-Phase 1/2 дошли до успешной установки CycloneDDS в `~/cyclonedds/install`. На Phase 3 установка остановилась до создания Python-окружения:
+### 1. Assets
+
+Официальные Unitree assets скачаны и распакованы успешно (`assets.zip`, около 1.2 GB).
+
+### 2. CycloneDDS
+
+CycloneDDS собран и установлен в `~/cyclonedds/install`.
+
+### 3. Conda
+
+Первый запуск Phase 3 остановился из-за отсутствия команды `conda`. После установки/инициализации Miniconda setup дошёл до создания окружения `unitree_sim_env`, но Conda потребовала принять Terms of Service для стандартных Anaconda channels:
 
 ```text
-auto_setup_env.sh: line 133: conda: command not found
+CondaToSNonInteractiveError: Terms of Service have not been accepted
 ```
 
-Причина: `auto_setup_env.sh` ожидает уже установленную и доступную в `PATH` Conda (`CONDA_BASE=$(conda info --base)`), а на ноутбуке Conda изначально отсутствовала.
+Требуется принять ToS для:
 
-Статус: **blocked on Conda initialization**. Isaac Sim и Isaac Lab локально ещё не установлены.
+```text
+https://repo.anaconda.com/pkgs/main
+https://repo.anaconda.com/pkgs/r
+```
+
+Статус: **blocked on Conda channel ToS acceptance**. Isaac Sim и Isaac Lab локально ещё не установлены.
 
 ## Следующий шаг
 
-Установить или активировать Miniconda, проверить `conda --version`, затем повторно запустить тот же официальный setup script. Уже собранный CycloneDDS оставляем на месте.
+Принять ToS, затем повторно запустить тот же setup script:
+
+```bash
+conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main
+conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
+
+cd ~/unitree_sim_isaaclab
+bash auto_setup_env.sh 5.1 unitree_sim_env
+```
+
+Повторный запуск оставляем штатным: уже скачанные assets и собранный CycloneDDS повторно использоваться там, где это поддерживает скрипт.
 
 После завершения установки проверить:
 
