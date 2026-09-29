@@ -14,7 +14,7 @@
 | ОС | Ubuntu 22.04.5 LTS |
 | glibc | `2.35` |
 | системный Python | `3.10.12` |
-| Conda | установлена позже через Miniconda |
+| Conda | установлена через Miniconda |
 
 Системный Python не изменяем: Isaac/Unitree устанавливаются в отдельное окружение.
 
@@ -27,67 +27,65 @@
 1. Использовать официальный `unitreerobotics/unitree_sim_isaaclab`, а не собирать G1 вручную поверх чистого Isaac Sim.
 2. Использовать Isaac Sim `5.1`, чтобы локальная среда соответствовала серверному baseline.
 3. Держать всё в отдельном `unitree_sim_env`.
-4. Для Isaac Sim 5.1 зафиксировать совместимый Isaac Lab commit `80094be3245aa5c8376a7464d29cb4412ea518f5`, указанный в официальной инструкции Unitree.
+4. Для Isaac Sim 5.1 использовать совместимый Isaac Lab commit `80094be3245aa5c8376a7464d29cb4412ea518f5`, указанный Unitree.
 5. RTX 3080 Ti использовать для GUI/сцены/отладки; тяжёлые прогоны и обучение — на RTX 5090.
 
 ## Ход установки
 
-### 1. Assets
+### Assets и CycloneDDS
 
-Официальные Unitree assets скачаны и распакованы успешно (`assets.zip`, около 1.2 GB).
+Официальные Unitree assets скачаны и распакованы (`assets.zip`, около 1.2 GB). CycloneDDS собран и установлен в `~/cyclonedds/install`.
 
-### 2. CycloneDDS
+### Conda
 
-CycloneDDS собран и установлен в `~/cyclonedds/install`.
+Miniconda установлена и инициализирована. Приняты Terms of Service стандартных Anaconda channels.
 
-### 3. Conda
+### Исправление Isaac Lab
 
-Miniconda установлена и инициализирована. Отдельно приняты Terms of Service стандартных Anaconda channels.
+Первая попытка через текущий `auto_setup_env.sh` подтянула `IsaacLab main`, который уже требует Python `>=3.12`, и обновила зависимости до `torch 2.12.0 + cu130`. Для Isaac Sim 5.1 это оказалось несовместимо с окружением Unitree на Python 3.11.
 
-### 4. Первая попытка Isaac Lab
-
-Первый запуск официального setup script для Isaac Sim 5.1 дошёл до установки Isaac Lab, но использовал актуальный `IsaacLab main`. Он уже требовал Python `>=3.12`, тогда как окружение Unitree создано на Python `3.11.16`. Перед остановкой зависимости также были обновлены до `torch 2.12.0 + cu130`.
-
-Причина: в `auto_setup_env.sh` совместимый Isaac Lab commit для 5.1 оставлен закомментированным, поэтому checkout автоматически не выполняется.
-
-### 5. Исправление версии Isaac Lab
-
-`~/IsaacLab` переключён на commit, указанный Unitree для Isaac Sim 5.1:
+`~/IsaacLab` переключён на совместимый commit:
 
 ```text
 80094be3245aa5c8376a7464d29cb4412ea518f5
 ```
 
-Окружение `unitree_sim_env` пересоздано на Python `3.11`. Установка pinned Isaac Lab завершилась без фатальной ошибки; EULA NVIDIA принята. В финальном шаге установлены `torch 2.7.0+cu128`, `torchvision 0.22.0+cu128`, `triton 3.3.0`.
+`unitree_sim_env` пересоздан, pinned Isaac Lab установлен успешно, EULA NVIDIA принята.
 
-Предупреждение о недостающем `isaacsim/.vscode/settings.json` относится только к VSCode `python.analysis.extraPaths` и не блокирует работу Isaac Lab.
+### Unitree dependencies
 
-Статус: **Isaac Lab installed; Unitree dependencies and runtime verification pending**.
+Установлены `unitree_sdk2_python`, зависимости `unitree_sim_isaaclab` и editable-пакет `teleimager 1.5.0`. В процессе `opencv-python` приведён к версии `4.11.0.86`.
+
+Проверка CUDA прошла успешно:
+
+```text
+Torch: 2.7.0+cu128
+CUDA: 12.8
+CUDA available: True
+GPU: NVIDIA GeForce RTX 3080 Ti Laptop GPU
+```
+
+Статус: **Python/CUDA stack operational; runtime launch checks pending**.
 
 ## Следующий шаг
 
-Доставить оставшиеся зависимости Unitree и патч `libstdc++`:
+Отдельно убедиться, что применён `libstdc++` patch:
 
 ```bash
-export CYCLONEDDS_HOME="$HOME/cyclonedds/install"
-
-cd ~/unitree_sdk2_python
-pip install -e .
-
-cd ~/unitree_sim_isaaclab
-pip install -r requirements.txt
-
-cd teleimager
-pip install -e .
-cd ..
-
 conda install -y -c conda-forge libstdcxx-ng
 ```
 
-После этого проверить фактические версии и GPU:
+После этого проверить:
 
 ```bash
-python -c "import torch; print(torch.__version__, torch.version.cuda, torch.cuda.is_available(), torch.cuda.get_device_name(0))"
+isaacsim
 ```
 
-Затем проверить запуск `isaacsim`, `scripts/tutorials/00_sim/create_empty.py`, официальный G1 + Inspire task и только после этого переходить к сцене сортировщика.
+и затем:
+
+```bash
+cd ~/IsaacLab
+./isaaclab.sh -p scripts/tutorials/00_sim/create_empty.py
+```
+
+После успешного запуска — проверить официальный G1 + Inspire task и переходить к сцене сортировщика.
