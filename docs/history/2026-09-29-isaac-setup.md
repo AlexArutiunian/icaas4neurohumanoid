@@ -56,7 +56,7 @@ Miniconda установлена и инициализирована. Приня
 
 Установлены `unitree_sdk2_python`, зависимости `unitree_sim_isaaclab` и editable-пакет `teleimager 1.5.0`. В процессе `opencv-python` приведён к версии `4.11.0.86`.
 
-Проверка CUDA прошла успешно:
+Проверка CUDA:
 
 ```text
 Torch: 2.7.0+cu128
@@ -67,20 +67,33 @@ GPU: NVIDIA GeForce RTX 3080 Ti Laptop GPU
 
 ### Runtime
 
-Isaac Sim GUI успешно запущен локально на RTX 3080 Ti. Asset Browser работает; read-only cloud assets отображаются с замком, но доступны для использования в сцене.
+Isaac Sim GUI успешно запущен локально на RTX 3080 Ti. Asset Browser работает; cloud assets read-only, но доступны для использования в сцене. Проверено добавление humanoid asset в Stage.
 
-Проверено добавление humanoid asset в Stage: робот появился в viewport, его prim-иерархия отображается в дереве сцены. Во время активного RTX-рендера GPU загружена полностью, что ожидаемо для Isaac Sim; по скриншоту использовалось около 2.8 GB VRAM из 16 GB.
-
-Статус: **Isaac Sim GUI operational; asset loading confirmed**.
-
-## Следующий шаг
-
-1. Проверить базовый Isaac Lab runtime:
+Базовый Isaac Lab runtime также успешно запущен через:
 
 ```bash
 cd ~/IsaacLab
 ./isaaclab.sh -p scripts/tutorials/00_sim/create_empty.py
 ```
 
-2. Запустить официальный Unitree G1 + Inspire task.
-3. После подтверждения G1 runtime перейти к сцене сортировщика: conveyor, accept/reject bins, камера и набор тестовых объектов.
+Открылось окно Isaac Sim 5.1.0 с пустой сценой и `PhysicsScene`; в терминале получено `Simulation App Startup Complete` и `[INFO]: Setup complete...`. Предупреждения PhysX/viewport не были фатальными.
+
+Статус: **Isaac Sim + Isaac Lab runtime operational**.
+
+## Следующий шаг
+
+Запустить официальный Unitree G1 + Inspire task:
+
+```bash
+conda activate unitree_sim_env
+export CYCLONEDDS_HOME="$HOME/cyclonedds/install"
+cd ~/unitree_sim_isaaclab
+python sim_main.py \
+  --device cpu \
+  --enable_cameras \
+  --task Isaac-PickPlace-RedBlock-G129-Inspire-Joint \
+  --enable_inspire_dds \
+  --robot_type g129
+```
+
+После подтверждения G1 runtime перейти к сцене сортировщика: conveyor, accept/reject bins, камера и тестовые объекты.
