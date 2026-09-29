@@ -91,12 +91,10 @@ python sim_main.py \
   --robot_type g129
 ```
 
-Isaac Sim стартовал, но при загрузке сцены появились ошибки MDL/Shader из `assets/objects/small_warehouse_digital_twin`, включая `Unable to find SdrShaderNode` и invalid `MdlModuleId` для материалов warehouse. Viewport остался пустым; успешное `create environment success` пока не подтверждено.
+На этапе загрузки появились MDL/Shader warnings для части материалов warehouse asset, но они не оказались блокирующими. Сцена загрузилась и simulation loop работает: в viewport отображается warehouse environment, в терминале печатается `While loop execution frequency statistics` с устойчивой частотой около 4 Hz.
 
-Ошибки относятся к материалам warehouse asset, который подключается базовой сценой `TableRedBlockSceneCfg`, а не непосредственно к модели G1.
-
-Статус: **G1 task launch reached scene loading; warehouse MDL/material issue under diagnosis**.
+Статус: **официальный G1 + Inspire task запущен; сцена и simulation loop работают**. Текущая камера смотрит на участок warehouse и не показывает робота в кадре, поэтому отдельно требуется найти/сфокусировать G1 в Stage/viewport и подтвердить его состояние.
 
 ## Следующий шаг
 
-Проверить наличие проблемных `.mdl` файлов и их регистр/путь. Если файлы присутствуют, диагностировать MDL search path; если отсутствуют — повторно проверить Unitree asset pack. При необходимости временно отключить `room_walls` в test scene, чтобы отдельно подтвердить загрузку G1 + Inspire без warehouse окружения.
+Найти prim робота в Stage, сфокусировать viewport на G1 и проверить, что загружены Inspire hands, стол и red block. После визуального подтверждения перейти к собственной сцене сортировщика: conveyor, accept/reject bins, камера и тестовые объекты.
